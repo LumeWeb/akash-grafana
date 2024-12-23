@@ -25,6 +25,10 @@ export GF_SERVER_ROOT_URL="%(protocol)s://%(domain)s/"
  DB_USER=${DB_USER_PASS%:*}
  DB_PASS=${DB_USER_PASS#*:}
 
+# URL decode both username and password
+DB_USER=$(printf '%b' "${DB_USER//%/\\x}")
+DB_PASS=$(printf '%b' "${DB_PASS//%/\\x}")
+
  # Create database if it doesn't exist
  echo "Creating database $DB_NAME if it doesn't exist..."
 mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" -e "CREATE DATABASE IF NOT EXISTS $DB_NAME"
