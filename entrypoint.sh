@@ -27,7 +27,7 @@ export GF_SERVER_ROOT_URL="%(protocol)s://%(domain)s/"
 
  # Create database if it doesn't exist
  echo "Creating database $DB_NAME if it doesn't exist..."
- mysql -h $DB_HOST -P $DB_PORT -u $DB_USER -p$DB_PASS -e "CREATE DATABASE IF NOT EXISTS $DB_NAME"
+mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" -e "CREATE DATABASE IF NOT EXISTS $DB_NAME"
 
 # Update admin user if environment variables are set
 if [ -n "${GF_SECURITY_ADMIN_USER}" ] && [ -n "${GF_SECURITY_ADMIN_PASSWORD}" ]; then
