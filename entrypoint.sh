@@ -9,8 +9,9 @@ export GF_SERVER_ROOT_URL="%(protocol)s://%(domain)s/"
 DB_URL=${GF_DATABASE_URL}
 DB_NAME=${DB_URL##*/}
 DB_NAME=${DB_NAME%%\?*}
-DB_HOST_PORT=${DB_URL#*://*/}
-if [[ $DB_HOST_PORT == *:* ]]; then
+DB_HOST_PORT=${DB_URL#*@}
+DB_HOST_PORT=${DB_HOST_PORT%%/*}
+if echo "$DB_HOST_PORT" | grep -q ":"; then
   DB_HOST=${DB_HOST_PORT%:*}
   DB_PORT=${DB_HOST_PORT#*:}
 else
