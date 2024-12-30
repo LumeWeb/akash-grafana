@@ -63,7 +63,7 @@ create_database() {
 update_admin_credentials() {
     if [ -n "${GF_SECURITY_ADMIN_USER}" ] && [ -n "${GF_SECURITY_ADMIN_PASSWORD}" ]; then
         log "Updating admin user credentials..."
-        if grafana-cli admin reset-admin-password "${GF_SECURITY_ADMIN_PASSWORD}"; then
+        if grafana cli admin reset-admin-password "${GF_SECURITY_ADMIN_PASSWORD}"; then
             log "Admin credentials updated successfully"
         else
             log "Warning: Failed to update admin credentials"
