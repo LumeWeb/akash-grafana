@@ -71,19 +71,68 @@ update_admin_credentials() {
     fi
 }
 
+# Get Grafana server PID
+get_grafana_pid() {
+    pgrep -f "grafana server"
+}
+
+# Monitor database connectivity
+monitor_db() {
+    while true; do
+        if ! mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" -e "SELECT 1" >/dev/null 2>&1; then
+            log "Database connection lost, waiting for recovery..."
+            wait_for_db
+            log "Database recovered, restarting Grafana..."
+            local grafana_pid=$(get_grafana_pid)
+            if [ -n "$grafana_pid" ]; then
+                kill $grafana_pid
+            fi
+            return
+        fi
+        sleep 10
+    done
+}
+
+# Cleanup function
+cleanup() {
+    log "Cleaning up..."
+    local grafana_pid=$(get_grafana_pid)
+    if [ -n "$grafana_pid" ]; then
+        kill $grafana_pid 2>/dev/null || true
+    fi
+    kill $1 2>/dev/null || true  # Kill monitor process
+}
+
 # Main execution
 main() {
     # Configure proxy settings
     export GF_SERVER_HTTP_PORT=${GF_SERVER_HTTP_PORT:-3000}
     export GF_SERVER_ROOT_URL="%(protocol)s://%(domain)s/"
 
-    parse_db_url
-    wait_for_db
-    create_database
-    update_admin_credentials
+    while true; do
+        parse_db_url
+        wait_for_db
+        create_database
+        update_admin_credentials
 
-    log "Starting Grafana..."
-    exec /run.sh "$@"
+        log "Starting Grafana..."
+        /run.sh "$@" &
+        sleep 2  # Give time for exec to occur
+        grafana_pid=$(get_grafana_pid)
+
+        # Start database monitor in background
+        monitor_db &
+        monitor_pid=$!
+
+        # Setup cleanup trap
+        trap "cleanup $monitor_pid" EXIT
+
+        # Wait for Grafana to exit
+        wait $grafana_pid || true
+        
+        log "Grafana exited, restarting..."
+        sleep 2
+    done
 }
 
 main "$@"
