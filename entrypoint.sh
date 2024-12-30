@@ -33,7 +33,7 @@ parse_db_url() {
 # Wait for database to be ready
 wait_for_db() {
     local retries=30
-    local wait_time=2
+    local wait_time=10
     
     log "Waiting for database connection..."
     while ! mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" -e "SELECT 1" >/dev/null 2>&1; do
